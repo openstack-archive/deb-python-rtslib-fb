@@ -1,0 +1,29 @@
+Description: Fix path for the /etc/target/saveconfig.json
+ The default path is /etc/target, which IMO is a way too generic. So I changed
+ this to /etc/rtslib-fb-target/saveconfig.json
+Author: Thomas Goirand <zigo@debian.org>
+Forwarded: no
+Last-Update: 2014-01-25
+
+--- python-rtslib-fb-2.1.45.orig/scripts/targetctl
++++ python-rtslib-fb-2.1.45/scripts/targetctl
+@@ -28,7 +28,7 @@ from rtslib import RTSRoot
+ import os
+ import sys
+ 
+-default_save_file = "/etc/target/saveconfig.json"
++default_save_file = "/etc/rtslib-fb-target/saveconfig.json"
+ err = sys.stderr
+ 
+ def usage():
+--- python-rtslib-fb-2.1.45.orig/rtslib/root.py
++++ python-rtslib-fb-2.1.45/rtslib/root.py
+@@ -37,7 +37,7 @@ storageobjects = dict(
+     ramdisk=RDMCPStorageObject,
+     )
+ 
+-default_save_file = "/etc/target/saveconfig.json"
++default_save_file = "/etc/rtslib-fb-target/saveconfig.json"
+ 
+ class RTSRoot(CFSNode):
+     '''
