@@ -1,0 +1,42 @@
+#!/usr/bin/make -f
+
+PYTHONS:=$(shell pyversions -vr)
+PYTHON3S:=$(shell py3versions -vr)
+
+#prevent internet access to use PyPi
+export http_proxy = http://127.0.0.1:9
+
+UPSTREAM_GIT = git://github.com/agrover/rtslib-fb.git
+-include /usr/share/openstack-pkg-tools/pkgos.make
+
+%:
+	dh $@ --buildsystem=python_distutils --with python2,python3
+
+override_dh_auto_install:
+	set -e && for pyvers in $(PYTHONS); do \
+		python$$pyvers setup.py install --install-layout=deb \
+			--root $(CURDIR)/debian/python-rtslib-fb; \
+	done
+	set -e && for pyvers in $(PYTHON3S); do \
+		python$$pyvers setup.py install --install-layout=deb \
+			--root $(CURDIR)/debian/python3-rtslib-fb; \
+	done
+	mv $(CURDIR)/debian/python-rtslib-fb/usr/bin/targetctl \
+		$(CURDIR)/debian/python-rtslib-fb/usr/bin/targetctl-python3
+	mv $(CURDIR)/debian/python3-rtslib-fb/usr/bin/targetctl \
+		$(CURDIR)/debian/python3-rtslib-fb/usr/bin/targetctl-python2
+
+override_dh_installdocs:
+	mkdir -p build
+	mkdir -p $(CURDIR)/debian/python-rtslib-fb-doc/usr/share/doc/python-rtslib-fb-doc/html
+	cd build; epydoc --no-sourcecode --html -n rtslib-fb \
+		--exclude configobj ../rtslib/*.py \
+		--output $(CURDIR)/debian/python-rtslib-fb-doc/usr/share/doc/python-rtslib-fb-doc/html
+	dh_installdocs -O--buildsystem=python_distutils
+
+override_dh_installinit:
+	dh_installinit -O--buildsystem=python_distutils --name rtslib-fb-targetctl
+
+override_dh_auto_clean:
+	dh_auto_clean -O--buildsystem=python_distutils
+	rm -rf build

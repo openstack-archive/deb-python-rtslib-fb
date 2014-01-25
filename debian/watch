@@ -1,0 +1,4 @@
+version=3
+opts="uversionmangle=s/v//" \
+opts="uversionmangle=s/fb//" \
+https://github.com/agrover/rtslib-fb/tags .*/(\d[\d\.]+)\.tar\.gz

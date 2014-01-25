@@ -1,0 +1,5 @@
+python-rtslib-fb (2.1.45-1) unstable; urgency=medium
+
+  * Initial release. (Closes: #736573)
+
+ -- Thomas Goirand <zigo@debian.org>  Sat, 25 Jan 2014 15:34:09 +0800

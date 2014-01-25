@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+
+if [ "$1" = "configure" ] ; then
+	update-alternatives --install /usr/bin/targetctl targetctl /usr/bin/targetctl-python3 200
+fi
+
+#DEBHELPER#
