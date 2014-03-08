@@ -4,6 +4,17 @@ set -e
 
 if [ "$1" = "configure" ] ; then
 	update-alternatives --install /usr/bin/targetctl targetctl /usr/bin/targetctl-python2 300
+	if [ ! -d /etc/rtslib-fb-target ] ; then
+		mkdir -p /etc/rtslib-fb-target
+	fi
+	# If file doesn't exist or is of size zero, write it...
+	if [ ! -s /etc/rtslib-fb-target/saveconfig.json ] ; then
+		echo "{
+  \"fabric_modules\": [],
+  \"storage_objects\": [],
+  \"targets\": []
+}" >/etc/rtslib-fb-target/saveconfig.json
+	fi
 fi
 
 #DEBHELPER#
