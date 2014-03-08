@@ -39,7 +39,7 @@ Description: object API for managing the Linux LIO kernel target - Python 2.x
 
 Package: python3-rtslib-fb
 Architecture: all
-Depends: ${misc:Depends}, ${python3:Depends}
+Depends: python-rtslib-fb, ${misc:Depends}, ${python3:Depends}
 Suggests: python-rtslib-fb-doc
 Conflicts: lio-utils
 Replaces: targetcli-fb (<< 2.1.fb32)

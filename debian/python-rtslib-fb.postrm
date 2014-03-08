@@ -5,5 +5,8 @@ set -e
 if [ "$1" = "remove" ] || [ "$1" = "disappear" ]; then
 	update-alternatives --remove targetctl /usr/bin/targetctl-python2
 fi
+if [ "$1" = "purge" ] ; then
+	rm -rf /etc/rtslib-fb-target
+fi
 
 #DEBHELPER#
