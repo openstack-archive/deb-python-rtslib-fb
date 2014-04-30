@@ -1,3 +1,9 @@
+python-rtslib-fb (2.1.45-3) unstable; urgency=medium
+
+  * Fixed missing python3-all build-depends. (Closes: #746133).
+
+ -- Thomas Goirand <zigo@debian.org>  Wed, 30 Apr 2014 08:50:32 +0000
+
 python-rtslib-fb (2.1.45-2) unstable; urgency=medium
 
   * Manually tries to load configfs kernel module to avoid failure on install.
