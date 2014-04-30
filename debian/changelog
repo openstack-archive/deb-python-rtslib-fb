@@ -1,3 +1,11 @@
+python-rtslib-fb (2.1.45-2) unstable; urgency=medium
+
+  * Manually tries to load configfs kernel module to avoid failure on install.
+    Thanks to Martin Zobel-Helas <zobel@debian.org> for reporting this problem.
+    (Closes: #745648).
+
+ -- Thomas Goirand <zigo@debian.org>  Wed, 30 Apr 2014 07:38:32 +0000
+
 python-rtslib-fb (2.1.45-1) unstable; urgency=medium
 
   * Initial release. (Closes: #736573)

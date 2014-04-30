@@ -24,8 +24,17 @@ SYSTEM_USER=trove
 
 . /lib/lsb/init-functions
 
+check_configfs_module () {
+	if ! modprobe configfs ; then
+		echo "Could not load configfs module: exiting!"
+		exit 0
+	fi
+}
+
+
 case "$1" in
 start)
+	check_configfs_module
 	log_daemon_msg "Loading $DESC" "$NAME"
 	${DAEMON} restore
 	if [ $? -gt 0 ] ; then
@@ -35,6 +44,7 @@ start)
 	log_end_msg 0
 ;;
 stop)
+	check_configfs_module
 	log_daemon_msg "Unloading $DESC" "${NAME}"
 	${DAEMON} clear
 	if [ $? -gt 0 ] ; then
