@@ -1,3 +1,9 @@
+python-rtslib-fb (2.1.45-4) unstable; urgency=medium
+
+  * Fixed VCS URLs.
+
+ -- Thomas Goirand <zigo@debian.org>  Sun, 29 Jun 2014 00:30:03 +0800
+
 python-rtslib-fb (2.1.45-3) unstable; urgency=medium
 
   * Fixed missing python3-all build-depends. (Closes: #746133).
