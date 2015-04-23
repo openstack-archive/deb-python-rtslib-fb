@@ -1,3 +1,9 @@
+python-rtslib-fb (2.1.45-5) UNRELEASED; urgency=medium
+
+  * Added a delay after the module is loaded. This is only a trial hack...
+
+ -- Thomas Goirand <zigo@debian.org>  Thu, 23 Apr 2015 11:36:46 +0200
+
 python-rtslib-fb (2.1.45-4) unstable; urgency=medium
 
   * Fixed VCS URLs.

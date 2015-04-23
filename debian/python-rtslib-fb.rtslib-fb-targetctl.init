@@ -28,6 +28,8 @@ check_configfs_module () {
 	if ! modprobe configfs ; then
 		echo "Could not load configfs module: exiting!"
 		exit 0
+	else
+		sleep 5
 	fi
 }
 
