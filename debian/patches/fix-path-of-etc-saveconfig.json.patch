@@ -5,9 +5,11 @@ Author: Thomas Goirand <zigo@debian.org>
 Forwarded: no
 Last-Update: 2014-01-25
 
---- python-rtslib-fb-2.1.45.orig/scripts/targetctl
-+++ python-rtslib-fb-2.1.45/scripts/targetctl
-@@ -28,7 +28,7 @@ from rtslib import RTSRoot
+Index: python-rtslib-fb/scripts/targetctl
+===================================================================
+--- python-rtslib-fb.orig/scripts/targetctl
++++ python-rtslib-fb/scripts/targetctl
+@@ -28,7 +28,7 @@ from rtslib_fb import RTSRoot
  import os
  import sys
  
@@ -16,11 +18,13 @@ Last-Update: 2014-01-25
  err = sys.stderr
  
  def usage():
---- python-rtslib-fb-2.1.45.orig/rtslib/root.py
-+++ python-rtslib-fb-2.1.45/rtslib/root.py
-@@ -37,7 +37,7 @@ storageobjects = dict(
-     ramdisk=RDMCPStorageObject,
-     )
+Index: python-rtslib-fb/rtslib/root.py
+===================================================================
+--- python-rtslib-fb.orig/rtslib/root.py
++++ python-rtslib-fb/rtslib/root.py
+@@ -29,7 +29,7 @@ from .tcm import so_mapping, StorageObje
+ from .utils import RTSLibError, modprobe, mount_configfs
+ from .utils import dict_remove, set_attributes
  
 -default_save_file = "/etc/target/saveconfig.json"
 +default_save_file = "/etc/rtslib-fb-target/saveconfig.json"
