@@ -1,7 +1,7 @@
 '''
 This file is part of RTSLib.
 Copyright (c) 2011-2013 by Datera, Inc
-Copyright (c) 2013 by Andy Grover
+Copyright (c) 2011-2014 by Red Hat, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may
 not use this file except in compliance with the License. You may obtain
@@ -107,15 +107,16 @@ Example: self._path = "%s/%s" % (self.configfs_dir, "my_cfs_dir")
 
 '''
 
-import os
-from glob import iglob as glob
-
-from node import CFSNode
-from utils import fread, fwrite, generate_wwn, normalize_wwn, colonize
-from utils import RTSLibError, modprobe, ignored
-from target import Target
-from utils import _get_auth_attr, _set_auth_attr
 from functools import partial
+from glob import iglob as glob
+import os
+import six
+
+from .node import CFSNode
+from .utils import fread, fwrite, normalize_wwn, colonize
+from .utils import RTSLibError, modprobe, ignored
+from .target import Target
+from .utils import _get_auth_attr, _set_auth_attr
 
 version_attributes = {"lio_version", "version"}
 discovery_auth_attributes = {"discovery_auth"}
@@ -176,7 +177,7 @@ class _BaseFabricModule(CFSNode):
                 if os.path.isfile(path):
                     return fread(path)
             else:
-                raise RTSLibError("Can't find version for fabric module %s."
+                raise RTSLibError("Can't find version for fabric module %s"
                                   % self.name)
         else:
             return None
@@ -214,8 +215,8 @@ class _BaseFabricModule(CFSNode):
 
     def _assert_feature(self, feature):
         if not self.has_feature(feature):
-            raise RTSLibError("This fabric module does not implement "
-                              + "the %s feature." % feature)
+            raise RTSLibError("Fabric module %s does not implement "
+                              + "the %s feature" % (self.name, feature))
 
     def clear_discovery_auth_settings(self):
         self._check_self()
@@ -297,7 +298,7 @@ class _BaseFabricModule(CFSNode):
         '''
         Setup fabricmodule with settings from fm dict.
         '''
-        for name, value in fm.iteritems():
+        for name, value in six.iteritems(fm):
             if name != 'name':
                 try:
                     setattr(self, name, value)
@@ -458,5 +459,5 @@ class FabricModule(object):
 
     @classmethod
     def all(cls):
-        for mod in fabric_modules.itervalues():
+        for mod in six.itervalues(fabric_modules):
             yield mod()

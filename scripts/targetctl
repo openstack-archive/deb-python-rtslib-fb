@@ -24,7 +24,7 @@ under the License.
 
 from __future__ import print_function
 
-from rtslib import RTSRoot
+from rtslib_fb import RTSRoot
 import os
 import sys
 
@@ -42,15 +42,16 @@ def save(to_file):
     RTSRoot().save_to_file(save_file=to_file)
 
 def restore(from_file):
+
+    try:
         errors = RTSRoot().restore_from_file(restore_file=from_file)
+    except IOError:
+        # Not an error if the restore file is not present
+        print("No saved config file at %s, ok, exiting" % from_file)
+        sys.exit(0)
 
-        if errors:
-            print("Restore failed, %d errors:" % len(errors), file=err)
-
-            for error in errors:
-                print(error, file=err)
-
-            sys.exit(-1)
+    for error in errors:
+        print(error, file=err)
 
 def clear(unused):
     RTSRoot().clear_existing(confirm=True)

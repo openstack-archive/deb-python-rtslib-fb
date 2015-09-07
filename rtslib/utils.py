@@ -3,6 +3,7 @@ Provides various utility functions.
 
 This file is part of RTSLib.
 Copyright (c) 2011-2013 by Datera, Inc
+Copyright (c) 2011-2014 by Red Hat, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may
 not use this file except in compliance with the License. You may obtain
@@ -17,12 +18,13 @@ License for the specific language governing permissions and limitations
 under the License.
 '''
 
-import re
 import os
-import stat
-import uuid
+import re
+import six
 import socket
+import stat
 import subprocess
+import uuid
 from contextlib import contextmanager
 
 class RTSLibError(Exception):
@@ -109,11 +111,30 @@ def is_dev_in_use(path):
         os.close(file_fd)
         return False
 
-def get_blockdev_size(path):
+def get_size_for_blk_dev(path):
     '''
-    Returns the size in logical blocks of a disk-type block device.
+    @param path: The path to a block device
+    @type path: string
+    @return: The size in logical blocks of the device
     '''
-    name = os.path.basename(os.path.realpath(path))
+    rdev = os.lstat(path).st_rdev
+    maj, min = os.major(rdev), os.minor(rdev)
+
+    for line in list(open("/proc/partitions"))[2:]:
+        xmaj, xmin, size, name = line.split()
+        if (maj, min) == (int(xmaj), int(xmin)):
+            return get_size_for_disk_name(name)
+    else:
+        return 0
+
+get_block_size = get_size_for_blk_dev
+
+def get_size_for_disk_name(name):
+    '''
+    @param name: a kernel disk name, as found in /proc/partitions
+    @type name: string
+    @return: The size in logical blocks of a disk-type block device.
+    '''
 
     # size is in 512-byte sectors, we want to return number of logical blocks
     def get_size(path, is_partition=False):
@@ -123,11 +144,15 @@ def get_blockdev_size(path):
         logical_block_size = int(fread("%s/queue/logical_block_size" % path))
         return sect_size / (logical_block_size / 512)
 
+    # Disk names can include '/' (e.g. 'cciss/c0d0') but these are changed to
+    # '!' when listed in /sys/block.
+    name = name.replace("/", "!")
+
     try:
         return get_size("/sys/block/%s" % name)
     except IOError:
         # Maybe it's a partition?
-        m = re.search(r'^([a-z0-9_-]+)(\d+)$', name)
+        m = re.search(r'^([a-z0-9_\-!]+)(\d+)$', name)
         if m:
             # If disk name ends with a digit, Linux sticks a 'p' between it and
             # the partition number in the blockdev name.
@@ -137,8 +162,6 @@ def get_blockdev_size(path):
             return get_size("/sys/block/%s/%s" % (disk, m.group()), True)
         else:
             raise
-
-get_block_size = get_blockdev_size
 
 def get_blockdev_type(path):
     '''
@@ -211,7 +234,7 @@ def convert_scsi_path_to_hctl(path):
                           % devname)[0].split(':')
     except:
         return None
-    
+
     return [int(data) for data in hctl]
 
 def convert_scsi_hctl_to_path(host, controller, target, lun):
@@ -244,7 +267,7 @@ def convert_scsi_hctl_to_path(host, controller, target, lun):
         lun = int(lun)
     except ValueError:
         raise RTSLibError(
-            "The host, controller, target and lun parameter must be integers.")
+            "The host, controller, target and lun parameter must be integers")
 
     for devname in os.listdir("/sys/block"):
         path = "/dev/%s" % devname
@@ -280,11 +303,11 @@ def generate_wwn(wwn_type):
         # 5 = IEEE registered
         # 001405 = OpenIB OUI (they let us use it I guess?)
         # rest = random
-        return "naa.5001405" + uuid.uuid4().get_hex()[-9:]
+        return "naa.5001405" + uuid.uuid4().hex[-9:]
     elif wwn_type == 'eui':
-        return "eui.001405" + uuid.uuid4().get_hex()[-10:]
+        return "eui.001405" + uuid.uuid4().hex[-10:]
     else:
-        raise ValueError("Unknown WWN type: %s." % wwn_type)
+        raise ValueError("Unknown WWN type: %s" % wwn_type)
 
 def colonize(str):
     '''
@@ -314,8 +337,7 @@ def _cleanse_wwn(wwn_type, wwn):
 def normalize_wwn(wwn_types, wwn):
     '''
     Take a WWN as given by the user and convert it to a standard text
-    representation. If possible_wwns is not None, verify that
-    the given WWN is on that list.
+    representation.
 
     Returns (normalized_wwn, wwn_type), or exception if invalid wwn.
     '''
@@ -377,7 +399,7 @@ def mount_configfs():
                                    stderr=subprocess.PIPE)
         (stdoutdata, stderrdata) = process.communicate()
         if process.returncode != 0:
-            raise RTSLibError("Cannot mount configfs.")
+            raise RTSLibError("Cannot mount configfs")
 
 def dict_remove(d, items):
     for item in items:
@@ -433,17 +455,19 @@ def _set_auth_attr(self, value, attribute, ignore=False):
         if not ignore:
             raise
 
-def set_attributes(obj, attr_dict):
-    for name, value in attr_dict.iteritems():
-        # Setting some attributes may return an error, before kernel 3.3
-        with ignored(RTSLibError):
+def set_attributes(obj, attr_dict, err_func):
+    for name, value in six.iteritems(attr_dict):
+        try:
             obj.set_attribute(name, value)
+        except RTSLibError as e:
+            err_func(str(e))
 
-def set_parameters(obj, param_dict): 
-    for name, value in param_dict.iteritems():
-        # Setting some parameters may return an error, before kernel 3.3
-        with ignored(RTSLibError):
+def set_parameters(obj, param_dict, err_func):
+    for name, value in six.iteritems(param_dict):
+        try:
             obj.set_parameter(name, value)
+        except RTSLibError as e:
+            err_func(str(e))
 
 def _test():
     '''Run the doctests'''

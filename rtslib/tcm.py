@@ -3,6 +3,7 @@ Implements the RTS Target backstore and storage object classes.
 
 This file is part of RTSLib.
 Copyright (c) 2011-2013 by Datera, Inc
+Copyright (c) 2011-2014 by Red Hat, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may
 not use this file except in compliance with the License. You may obtain
@@ -18,14 +19,17 @@ under the License.
 '''
 
 import os
+import stat
 import re
 import glob
 import resource
+from six.moves import range
 
-from node import CFSNode
-from utils import fread, fwrite, RTSLibError, generate_wwn
-from utils import convert_scsi_path_to_hctl, convert_scsi_hctl_to_path
-from utils import is_dev_in_use, get_blockdev_type, get_blockdev_size
+from .node import CFSNode
+from .utils import fread, fwrite, generate_wwn, RTSLibError, RTSLibNotInCFS
+from .utils import convert_scsi_path_to_hctl, convert_scsi_hctl_to_path
+from .utils import is_dev_in_use, get_blockdev_type
+from .utils import get_size_for_blk_dev, get_size_for_disk_name
 
 
 class StorageObject(CFSNode):
@@ -42,7 +46,7 @@ class StorageObject(CFSNode):
         super(StorageObject, self).__init__()
         if "/" in name or " " in name or "\t" in name or "\n" in name:
             raise RTSLibError("A storage object's name cannot contain "
-                              " /, newline or spaces/tabs.")
+                              " /, newline or spaces/tabs")
         else:
             self._name = name
         self._backstore = _Backstore(name, type(self), mode)
@@ -106,16 +110,10 @@ class StorageObject(CFSNode):
         '''
         Build a StorageObject of the correct type from a configfs path.
         '''
-        mapping = dict(
-            fileio=FileIOStorageObject,
-            pscsi=PSCSIStorageObject,
-            iblock=BlockStorageObject,
-            rd_mcp=RDMCPStorageObject,
-            )
         so_name = os.path.basename(path)
         so_type = path.split("/")[-2].rsplit("_", 1)[0]
-        return mapping[so_type](so_name)
-        
+        return so_mapping[so_type](so_name)
+
     def _get_wwn(self):
         self._check_self()
         if self.is_configured():
@@ -123,7 +121,7 @@ class StorageObject(CFSNode):
             return fread(path).partition(":")[2].strip()
         else:
             raise RTSLibError("Cannot read a T10 WWN Unit Serial from "
-                              + "an unconfigured StorageObject.")
+                              + "an unconfigured StorageObject")
 
     def _set_wwn(self, wwn):
         self._check_self()
@@ -132,7 +130,7 @@ class StorageObject(CFSNode):
             fwrite(path, "%s\n" % wwn)
         else:
             raise RTSLibError("Cannot write a T10 WWN Unit Serial to "
-                              + "an unconfigured StorageObject.")
+                              + "an unconfigured StorageObject")
 
     def _set_udev_path(self, udev_path):
         self._check_self()
@@ -172,11 +170,11 @@ class StorageObject(CFSNode):
         self._check_self()
         info = fread("%s/info" % self.path)
         return re.search(".*%s: ([^: ]+).*" \
-                         % key, ' '.join(info.split())).group(1).lower()
+                         % key, ' '.join(info.split())).group(1)
 
     def _get_status(self):
         self._check_self()
-        return self._parse_info('Status')
+        return self._parse_info('Status').lower()
 
     def _gen_attached_luns(self):
         '''
@@ -188,9 +186,9 @@ class StorageObject(CFSNode):
         listdir = os.listdir
         realpath = os.path.realpath
         path = self.path
-        from root import RTSRoot
-        from target import LUN, TPG, Target
-        from fabric import target_names_excludes
+        from .root import RTSRoot
+        from .target import LUN, TPG, Target
+        from .fabric import target_names_excludes
 
         for base, fm in ((fm.path, fm) for fm in RTSRoot().fabric_modules if fm.exists):
             for tgt_dir in listdir(base):
@@ -330,14 +328,14 @@ class PSCSIStorageObject(StorageObject):
                 raise RTSLibError("Cannot find SCSI device by "
                                   + "path, and dev "
                                   + "parameter not in H:C:T:L "
-                                  + "format: %s." % dev)
+                                  + "format: %s" % dev)
             else:
                 udev_path = convert_scsi_hctl_to_path(hostid,
                                                             channelid,
                                                             targetid,
                                                             lunid)
             if not udev_path:
-                raise RTSLibError("SCSI device does not exist.")
+                raise RTSLibError("SCSI device does not exist")
         else:
             udev_path = dev.strip()
 
@@ -346,7 +344,7 @@ class PSCSIStorageObject(StorageObject):
                               + "device %s (SCSI %d:%d:%d:%d) "
                               % (udev_path, hostid, channelid,
                                  targetid, lunid)
-                              + "is already in use.")
+                              + "is already in use")
 
         self._control("scsi_host_id=%d," % hostid \
                       + "scsi_channel_id=%d," % channelid \
@@ -568,13 +566,14 @@ class FileIOStorageObject(StorageObject):
     def _configure(self, dev, size, wwn, write_back):
         self._check_self()
 
+        dev = os.path.realpath(dev)
         block_type = get_blockdev_type(dev)
         if block_type is None: # a file
-            if os.path.exists(os.path.realpath(dev)) and not os.path.isfile(dev):
-                raise RTSLibError("Path not to a file or block device.")
+            if os.path.exists(dev) and not os.path.isfile(dev):
+                raise RTSLibError("Path not to a file or block device")
 
             if size is None:
-                raise RTSLibError("Path is to a file, size needed.")
+                raise RTSLibError("Path is to a file, size needed")
 
             self._control("fd_dev_name=%s,fd_dev_size=%d" % (dev, size))
 
@@ -583,10 +582,10 @@ class FileIOStorageObject(StorageObject):
             # dump() saves it and thus restore() will call us with it.
 
             if block_type != 0:
-                raise RTSLibError("Device is not a TYPE_DISK block device.")
+                raise RTSLibError("Device is not a TYPE_DISK block device")
 
             if is_dev_in_use(dev):
-                raise RTSLibError("Device %s is already in use." % dev)
+                raise RTSLibError("Device %s is already in use" % dev)
 
             self._control("fd_dev_name=%s" % dev)
 
@@ -608,7 +607,7 @@ class FileIOStorageObject(StorageObject):
         self._check_self()
 
         if self.is_block:
-            return (get_blockdev_size(self._parse_info('File')) *
+            return (get_size_for_blk_dev(self._parse_info('File')) *
                     int(self._parse_info('SectorSize')))
         else:
             return int(self._parse_info('Size'))
@@ -670,27 +669,24 @@ class BlockStorageObject(StorageObject):
         if dev is not None:
             super(BlockStorageObject, self).__init__(name, 'create')
             try:
-                self._configure(dev, wwn, readonly, write_back)
+                self._configure(dev, wwn, readonly)
             except:
                 self.delete()
                 raise
         else:
             super(BlockStorageObject, self).__init__(name, 'lookup')
 
-    def _configure(self, dev, wwn, readonly, write_back):
+    def _configure(self, dev, wwn, readonly):
         self._check_self()
         if get_blockdev_type(dev) != 0:
-            raise RTSLibError("Device is not a TYPE_DISK block device.")
+            raise RTSLibError("Device %s is not a TYPE_DISK block device" % dev)
         if is_dev_in_use(dev):
             raise RTSLibError("Cannot configure StorageObject because "
-                              + "device %s is already in use." % dev)
+                              + "device %s is already in use" % dev)
         self._set_udev_path(dev)
         self._control("udev_path=%s" % dev)
         self._control("readonly=%d" % readonly)
         self._enable()
-
-        if write_back:
-            self.set_attribute("emulate_write_cache", 1)
 
         super(BlockStorageObject, self)._configure(wwn)
 
@@ -704,7 +700,7 @@ class BlockStorageObject(StorageObject):
 
     def _get_size(self):
         # udev_path doesn't work here, what if LV gets renamed?
-        return get_blockdev_size(self._parse_info('device')) * int(self._parse_info('SectorSize'))
+        return get_size_for_disk_name(self._parse_info('device')) * int(self._parse_info('SectorSize'))
 
     def _get_wb_enabled(self):
         self._check_self()
@@ -740,11 +736,130 @@ class BlockStorageObject(StorageObject):
         return d
 
 
+class UserBackedStorageObject(StorageObject):
+    '''
+    An interface to configFS storage objects for userspace-backed backstore.
+    '''
+
+    def __init__(self, name, config=None, level=None, size=None, wwn=None):
+        '''
+        @param name: The name of the UserBackedStorageObject.
+        @type name: string
+        @param dev: The path to the backend block device to be used.
+            - Example: I{dev="/dev/sda"}.
+            - The only device type that is accepted I{TYPE_DISK}.
+              For other device types, use pscsi.
+        @type dev: string
+        @param size: The size of the device to create, in bytes.
+        @type size: int
+        @param config: user-handler-specific config string.
+            - e.g. "rbd/machine1@snap4"
+        @type config: string
+        @param level: TCMU emulation level, 0 or 1. Level 0 will pass all SCSI
+              commands, 1 will just pass I/O commands, READ, WRITE, etc.
+        @type level: int
+        @return: A UserBackedStorageObject object.
+        '''
+
+        if size is not None:
+            if level is None or config is None:
+                raise RTSLibError("'size', 'level', and 'config' must be set when "
+                                  "creating a new UserBackedStorageObject")
+            if '/' not in config:
+                raise RTSLibError("'config' must contain a '/' separating subtype "
+                                  "from its configuration string")
+            super(UserBackedStorageObject, self).__init__(name, 'create')
+            try:
+                self._configure(config, level, size, wwn)
+            except:
+                self.delete()
+                raise
+        else:
+            super(UserBackedStorageObject, self).__init__(name, 'lookup')
+
+    def _configure(self, config, level, size, wwn):
+        self._check_self()
+
+        if ':' in config:
+            raise RTSLibError("':' not allowed in config string")
+        if level not in (0, 1):
+            raise RTSLibError("Current allowable levels are 0 or 1")
+        self._control("dev_config=%s" % config)
+        self._control("pass_level=%d" % level)
+        self._control("dev_size=%d" % size)
+        self._enable()
+
+        super(UserBackedStorageObject, self)._configure(wwn)
+
+    def _get_size(self):
+        self._check_self()
+        return int(self._parse_info('Size'))
+
+    def _get_level(self):
+        self._check_self()
+        return int(self._parse_info('PassLevel'))
+
+    def _get_config(self):
+        self._check_self()
+        val = self._parse_info('Config')
+        if val == "NULL":
+            return None
+        return val
+
+    size = property(_get_size,
+            doc="Get the size in bytes.")
+    level = property(_get_level,
+            doc="Get the command emulation level.")
+    config = property(_get_config,
+            doc="Get the TCMU config.")
+
+    def dump(self):
+        d = super(UserBackedStorageObject, self).dump()
+        d['wwn'] = self.wwn
+        d['size'] = self.size
+        d['level'] = self.level
+        d['config'] = self.config
+        return d
+
+
+class StorageObjectFactory(object):
+    """
+    Create a storage object based on a given path.
+    Only works for file & block.
+    """
+
+    def __new__(cls, path):
+        path = os.path.realpath(path)
+        name = path.strip("/").replace("/", "-")
+        if os.path.exists(path):
+            s = os.stat(path)
+            if stat.S_ISBLK(s.st_mode):
+                return BlockStorageObject(name=name, dev=path)
+            elif stat.S_ISREG(s.st_mode):
+                return FileIOStorageObject(name=name, dev=path, size=s.st_size)
+
+        raise RTSLibError("Can't create storageobject from path: %s" % path)
+
+
+# Used to convert either dirprefix or plugin to the SO. Instead of two
+# almost-identical dicts we just have some duplicate entries.
+so_mapping = {
+    "pscsi": PSCSIStorageObject,
+    "rd_mcp": RDMCPStorageObject,
+    "ramdisk": RDMCPStorageObject,
+    "fileio": FileIOStorageObject,
+    "iblock": BlockStorageObject,
+    "block": BlockStorageObject,
+    "user": UserBackedStorageObject,
+}
+
+
 bs_params = {
     PSCSIStorageObject: dict(name='pscsi'),
     RDMCPStorageObject: dict(name='ramdisk', alt_dirprefix='rd_mcp'),
     FileIOStorageObject: dict(name='fileio'),
     BlockStorageObject: dict(name='block', alt_dirprefix='iblock'),
+    UserBackedStorageObject: dict(name='user'),
     }
 
 bs_cache = {}
@@ -781,12 +896,13 @@ class _Backstore(CFSNode):
                               (self._plugin, name))
         elif self._index == None:
             if mode == 'lookup':
-                raise RTSLibError("Storage object %s/%s not found" %
-                                  (self._plugin, name))
+                raise RTSLibNotInCFS("Storage object %s/%s not found" %
+                                     (self._plugin, name))
             else:
                 # Allocate new index value
-                for index in xrange(1048576):
-                    if index not in bs_cache.values():
+                indexes = set(bs_cache.values())
+                for index in range(1048576):
+                    if index not in indexes:
                         self._index = index
                         bs_cache[self._lookup_key] = self._index
                         break
@@ -796,7 +912,11 @@ class _Backstore(CFSNode):
         self._path = "%s/core/%s_%d" % (self.configfs_dir,
                                         dirp,
                                         self._index)
-        self._create_in_cfs_ine(mode)
+        try:
+            self._create_in_cfs_ine(mode)
+        except:
+            del bs_cache[self._lookup_key]
+            raise
 
     def delete(self):
         super(_Backstore, self).delete()
@@ -809,7 +929,7 @@ class _Backstore(CFSNode):
         self._check_self()
         info = fread("%s/hba_info" % self.path)
         return re.search(".*%s: ([^: ]+).*" \
-                         % key, ' '.join(info.split())).group(1).lower()
+                         % key, ' '.join(info.split())).group(1)
 
     def _get_version(self):
         self._check_self()

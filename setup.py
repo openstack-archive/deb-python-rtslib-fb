@@ -20,13 +20,17 @@ from setuptools import setup
 
 setup (
     name = 'rtslib-fb',
-    version = '2.1.45',
+    version = '2.1.57',
     description = 'API for Linux kernel SCSI target (aka LIO)',
     license = 'Apache 2.0',
     maintainer = 'Andy Grover',
     maintainer_email = 'agrover@redhat.com',
     url = 'http://github.com/agrover/rtslib-fb',
-    packages = ['rtslib'],
+    packages = ['rtslib_fb', 'rtslib'],
     scripts = ['scripts/targetctl'],
-    use_2to3 = True,
+    classifiers = [
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: Apache Software License",
+    ],
     )
