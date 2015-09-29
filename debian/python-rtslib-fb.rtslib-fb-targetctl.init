@@ -29,6 +29,7 @@ check_configfs_module () {
 		echo "Could not load configfs module: exiting!"
 		exit 0
 	fi
+	sleep 10
 }
 
 

@@ -1,3 +1,9 @@
+python-rtslib-fb (2.1.57-2) UNRELEASED; urgency=medium
+
+  * Wait 10 seconds after loading the kernel module (just a test...).
+
+ -- Thomas Goirand <zigo@debian.org>  Tue, 29 Sep 2015 12:54:25 +0000
+
 python-rtslib-fb (2.1.57-1) experimental; urgency=medium
 
   * New upstream release.
