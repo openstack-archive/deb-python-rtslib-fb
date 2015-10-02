@@ -14,7 +14,6 @@ Build-Depends: debhelper(>= 9),
                python3-all (>= 3.2),
                python3-setuptools
 Standards-Version: 3.9.5
-X-Python-Version: >= 2.7
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=openstack/python-rtslib-fb.git;a=summary
 Vcs-Git: git://anonscm.debian.org/openstack/python-rtslib-fb.git
 Homepage: https://github.com/agrover/rtslib-fb
