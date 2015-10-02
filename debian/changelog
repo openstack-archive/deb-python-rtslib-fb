@@ -2,6 +2,7 @@ python-rtslib-fb (2.1.57+debian-1) experimental; urgency=medium
 
   * New upstream release (fake one to fix native package).
   * Check if configfs is mounted before starting targetctl restore.
+  * Package isn't native anymore (missing debian/source/format file).
 
  -- Thomas Goirand <zigo@debian.org>  Fri, 02 Oct 2015 12:50:32 +0000
 
