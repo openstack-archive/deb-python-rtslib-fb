@@ -1,3 +1,16 @@
+python-rtslib-fb (2.1.57+debian-1) experimental; urgency=medium
+
+  * New upstream release (fake one to fix native package).
+  * Check if configfs is mounted before starting targetctl restore.
+
+ -- Thomas Goirand <zigo@debian.org>  Fri, 02 Oct 2015 12:50:32 +0000
+
+python-rtslib-fb (2.1.57-1) experimental; urgency=medium
+
+  * New upstream release.
+
+ -- Thomas Goirand <zigo@debian.org>  Mon, 07 Sep 2015 10:24:27 +0000
+
 python-rtslib-fb (2.1.45-5) UNRELEASED; urgency=medium
 
   * Checking if configfs is present in /proc/mount before starting targetctl
