@@ -6,6 +6,7 @@ python-rtslib-fb (2.1.57+debian-1) experimental; urgency=medium
   * Removed X-Python-Version: 2.7 now useless (Jessie has 2.7 by default).
   * Standards-Version is now 3.9.6.
   * Added missing dh-python build-depends.
+  * Added missing python{3,}-six (build-)depends.
 
  -- Thomas Goirand <zigo@debian.org>  Fri, 02 Oct 2015 12:50:32 +0000
 
