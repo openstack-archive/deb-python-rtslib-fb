@@ -1,14 +1,9 @@
-python-rtslib-fb (2.1.57-2) UNRELEASED; urgency=medium
+python-rtslib-fb (2.1.45-5) UNRELEASED; urgency=medium
 
-  * Wait 10 seconds after loading the kernel module (just a test...).
+  * Checking if configfs is present in /proc/mount before starting targetctl
+    restore.
 
- -- Thomas Goirand <zigo@debian.org>  Tue, 29 Sep 2015 12:54:25 +0000
-
-python-rtslib-fb (2.1.57-1) experimental; urgency=medium
-
-  * New upstream release.
-
- -- Thomas Goirand <zigo@debian.org>  Mon, 07 Sep 2015 10:24:27 +0000
+ -- Thomas Goirand <zigo@debian.org>  Thu, 23 Apr 2015 11:36:46 +0200
 
 python-rtslib-fb (2.1.45-4) unstable; urgency=medium
 
