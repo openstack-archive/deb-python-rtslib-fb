@@ -34,19 +34,19 @@ check_configfs_module () {
 
 check_configfs_mounted () {
 	WORD_TO_GREP_IN_PROCMOUNT=configfs
-	echo -n "Waiting for configfs to be loaded"
-	NUM_RETRY=30
+	#echo -n "Waiting for configfs to be loaded"
+	NUM_RETRY=50
 	while ! cat /proc/mounts | grep -q ${WORD_TO_GREP_IN_PROCMOUNT} && [ "${NUM_RETRY}" != 0 ] ; do
 		NUM_RETRY=$(( $NUM_RETRY - 1 ))
-		echo -n "."
+		#echo -n "."
 		sleep 0.1
 	done
 
 	if ! cat /proc/mounts | grep -q ${WORD_TO_GREP_IN_PROCMOUNT} ; then
 		echo " ${WORD_TO_GREP_IN_PROCMOUNT} not found in /proc/mount: exiting!"
 		exit 0
-	else
-		echo ": mounted!"
+#	else
+		#echo ": mounted!"
 	fi
 }
 
