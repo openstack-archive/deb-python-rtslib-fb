@@ -28,15 +28,31 @@ check_configfs_module () {
 	if ! modprobe configfs ; then
 		echo "Could not load configfs module: exiting!"
 		exit 0
-	else
-		sleep 5
 	fi
 }
 
+check_configfs_mounted () {
+	WORD_TO_GREP_IN_PROCMOUNT=configfs
+	echo -n "Waiting for configfs to be loaded"
+	NUM_RETRY=30
+	while ! cat /proc/mounts | grep -q ${WORD_TO_GREP_IN_PROCMOUNT} && [ "${NUM_RETRY}" != 0 ] ; do
+		NUM_RETRY=$(( $NUM_RETRY - 1 ))
+		echo -n "."
+		sleep 0.1
+	done
+
+	if ! cat /proc/mounts | grep -q ${WORD_TO_GREP_IN_PROCMOUNT} ; then
+		echo " ${WORD_TO_GREP_IN_PROCMOUNT} not found in /proc/mount: exiting!"
+		exit 0
+	else
+		echo ": mounted!"
+	fi
+}
 
 case "$1" in
 start)
 	check_configfs_module
+	check_configfs_mounted
 	log_daemon_msg "Loading $DESC" "$NAME"
 	${DAEMON} restore
 	if [ $? -gt 0 ] ; then

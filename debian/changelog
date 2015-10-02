@@ -1,6 +1,7 @@
 python-rtslib-fb (2.1.45-5) UNRELEASED; urgency=medium
 
-  * Added a delay after the module is loaded. This is only a trial hack...
+  * Checking if configfs is present in /proc/mount before starting targetctl
+    restore.
 
  -- Thomas Goirand <zigo@debian.org>  Thu, 23 Apr 2015 11:36:46 +0200
 
