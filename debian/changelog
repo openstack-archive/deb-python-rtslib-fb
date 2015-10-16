@@ -1,3 +1,9 @@
+python-rtslib-fb (2.1.57+debian-2) unstable; urgency=medium
+
+  * Uploading to unstable.
+
+ -- Thomas Goirand <zigo@debian.org>  Fri, 16 Oct 2015 10:48:18 +0000
+
 python-rtslib-fb (2.1.57+debian-1) experimental; urgency=medium
 
   * New upstream release (fake one to fix native package).
