@@ -26,6 +26,9 @@ override_dh_auto_install:
 	mv $(CURDIR)/debian/python3-rtslib-fb/usr/bin/targetctl \
 		$(CURDIR)/debian/python3-rtslib-fb/usr/bin/targetctl-python3
 
+override_dh_python3:
+	dh_python3 --shebang=/usr/bin/python3
+
 override_dh_installdocs:
 	mkdir -p build
 	mkdir -p $(CURDIR)/debian/python-rtslib-fb-doc/usr/share/doc/python-rtslib-fb-doc/html
