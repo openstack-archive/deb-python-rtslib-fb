@@ -6,7 +6,7 @@ PYTHON3S:=$(shell py3versions -vr)
 #prevent internet access to use PyPi
 export http_proxy = http://127.0.0.1:9
 
-UPSTREAM_GIT = git://github.com/agrover/rtslib-fb.git
+UPSTREAM_GIT := https://github.com/agrover/rtslib-fb.git
 -include /usr/share/openstack-pkg-tools/pkgos.make
 
 %:
