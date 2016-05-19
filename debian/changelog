@@ -2,6 +2,7 @@ python-rtslib-fb (2.1.57+debian-4) UNRELEASED; urgency=medium
 
   * Fixed VCS URLs (https).
   * d/rules: Changed UPSTREAM_GIT protocol to https
+  * d/copyright: Changed source URL to https protocol
 
  -- Ondřej Nový <novy@ondrej.org>  Sun, 28 Feb 2016 15:49:37 +0100
 
