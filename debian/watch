@@ -1,4 +1,3 @@
 version=3
-opts="uversionmangle=s/v//" \
 opts="uversionmangle=s/fb//" \
-https://github.com/agrover/rtslib-fb/tags .*/(\d[\d\.]+)\.tar\.gz
+https://fedorahosted.org/releases/t/a/targetcli-fb/ rtslib-fb-([\d]+\.[\d]+\.fb[\d]+)\.tar\.gz
