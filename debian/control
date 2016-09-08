@@ -26,7 +26,6 @@ Depends: python-six,
 Provides: ${python:Provides},
 Suggests: python-rtslib-fb-doc,
 Conflicts: python-rtslib,
-           rtsadmin-frozen,
 Description: object API for managing the Linux LIO kernel target - Python 2.x
  The rtslib-fb package is an object-based Python library for configuring the
  LIO generic SCSI target, present in 3.x Linux kernel versions.
