@@ -1,4 +1,4 @@
-python-rtslib-fb (2.1.57+debian-4) UNRELEASED; urgency=medium
+python-rtslib-fb (2.1.57+debian-4) unstable; urgency=medium
 
   * Fixed VCS URLs (https).
   * d/rules: Changed UPSTREAM_GIT protocol to https
