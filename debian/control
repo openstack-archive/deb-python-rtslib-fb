@@ -6,6 +6,7 @@ Uploaders: Thomas Goirand <zigo@debian.org>,
            Andy Grover <andy@groveronline.com>,
 Build-Depends: debhelper(>= 9),
                dh-python,
+               openstack-pkg-tools (>= 53~),
                python-all,
                python-epydoc,
                python-setuptools,
@@ -40,8 +41,7 @@ Description: object API for managing the Linux LIO kernel target - Python 2.x
 
 Package: python3-rtslib-fb
 Architecture: all
-Depends: python-rtslib-fb,
-         python3-six,
+Depends: python3-six,
          ${misc:Depends},
          ${python3:Depends},
 Suggests: python-rtslib-fb-doc,
@@ -56,6 +56,23 @@ Description: object API for managing the Linux LIO kernel target - Python 3.x
  since they are no longer strictly compatible.
  .
  This package contains the Python 3.x module.
+
+Package: targetctl
+Architecture: all
+Depends: python-rtslib-fb | python3-rtslib-fb
+Depends: ${misc:Depends},
+Suggests: python-rtslib-fb-doc,
+Description: object API for managing the Linux LIO kernel target - init scripts
+ The rtslib-fb package is an object-based Python library for configuring the
+ LIO generic SCSI target, present in 3.x Linux kernel versions.
+ .
+ The rtslib-fb package is a fork of the "rtslib" code written by RisingTide
+ Systems. The "-fb" differentiates between the original and this version.
+ Ensure to use either all "fb" versions of the targetcli components --
+ targetcli, rtslib, and configshell, or stick with all non-fb versions,
+ since they are no longer strictly compatible.
+ .
+ This package contains the init scripts and configuration.
 
 Package: python-rtslib-fb-doc
 Section: doc

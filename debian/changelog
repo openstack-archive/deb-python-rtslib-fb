@@ -1,3 +1,15 @@
+python-rtslib-fb (2.1.58-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Using pkgos-dh_auto_install from openstack-pkg-tools >= 53~.
+  * Adding a "targetctl" package that holds the init script, so that Debian
+    users can decide to use the Python 2 or 3 implementation (previously, the
+    Py3 package was depending on the Py2 package).
+  * Create /var/target/pr and /var/target/alua when installing targetctl,
+    remove them on purge.
+
+ -- Thomas Goirand <zigo@debian.org>  Fri, 07 Oct 2016 14:09:34 +0200
+
 python-rtslib-fb (2.1.57+debian-4) unstable; urgency=medium
 
   * Fixed VCS URLs (https).

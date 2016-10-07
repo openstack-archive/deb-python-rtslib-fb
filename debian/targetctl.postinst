@@ -1,0 +1,30 @@
+#!/bin/sh
+
+set -e
+
+if [ "$1" = "configure" ] ; then
+	mkdir -p /var/target/pr
+	mkdir -p /var/target/alua
+	if [ ! -d /etc/target ] ; then
+		mkdir -p /etc/target
+	fi
+	# If file doesn't exist or is of size zero,
+	# check the old location, copy if it exists,
+	# otherwise write it with initial values...
+	if [ ! -s /etc/target/saveconfig.json ] ; then
+		if [ -s /etc/rtslib-fb-target/saveconfig.json ] ; then
+			cat /etc/rtslib-fb-target/saveconfig.json >>/etc/target/saveconfig.json
+			rm -f /etc/rtslib-fb-target/saveconfig.json
+		else
+			echo "{
+  \"fabric_modules\": [],
+  \"storage_objects\": [],
+  \"targets\": []
+}" >/etc/target/saveconfig.json
+		fi
+	fi
+fi
+
+#DEBHELPER#
+
+exit 0

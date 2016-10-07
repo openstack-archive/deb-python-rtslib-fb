@@ -152,7 +152,7 @@ def get_size_for_disk_name(name):
         return get_size("/sys/block/%s" % name)
     except IOError:
         # Maybe it's a partition?
-        m = re.search(r'^([a-z0-9_\-!]+)(\d+)$', name)
+        m = re.search(r'^([a-z0-9_\-!]+?)(\d+)$', name)
         if m:
             # If disk name ends with a digit, Linux sticks a 'p' between it and
             # the partition number in the blockdev name.
@@ -382,7 +382,6 @@ def modprobe(module):
 
     try:
         import kmod
-        kmod.Kmod().modprobe(module)
     except ImportError:
         process = subprocess.Popen(("modprobe", module),
                                    stdout=subprocess.PIPE,
@@ -390,6 +389,12 @@ def modprobe(module):
         (stdoutdata, stderrdata) = process.communicate()
         if process.returncode != 0:
             raise RTSLibError(stderrdata)
+        return
+
+    try:
+        kmod.Kmod().modprobe(module)
+    except kmod.error.KmodError:
+        raise RTSLibError("Could not load module: %s" % module)
 
 def mount_configfs():
     if not os.path.ismount("/sys/kernel/config"):
@@ -446,7 +451,9 @@ def _set_auth_attr(self, value, attribute, ignore=False):
     path = "%s/%s" % (self.path, attribute)
     value = value.strip()
     if value == "NULL":
-        raise ValueError("'NULL' is not a permitted value")
+        raise RTSLibError("'NULL' is not a permitted value")
+    if len(value) > 255:
+        raise RTSLibError("Value longer than maximum length of 255")
     if value == '':
         value = "NULL"
     try:
