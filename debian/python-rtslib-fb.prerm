@@ -3,7 +3,7 @@
 set -e
 
 if [ "$1" = "remove" ] || [ "$1" = "disappear" ]; then
-	update-alternatives --remove targetctl /usr/bin/targetctl-python2
+	update-alternatives --remove targetctl /usr/bin/python2-targetctl
 fi
 
 #DEBHELPER#

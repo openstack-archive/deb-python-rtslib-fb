@@ -1,30 +1,16 @@
 #!/usr/bin/make -f
 
-PYTHONS:=$(shell pyversions -vr)
-PYTHON3S:=$(shell py3versions -vr)
-
 #prevent internet access to use PyPi
 export http_proxy = http://127.0.0.1:9
 
 UPSTREAM_GIT := https://github.com/agrover/rtslib-fb.git
--include /usr/share/openstack-pkg-tools/pkgos.make
+include /usr/share/openstack-pkg-tools/pkgos.make
 
 %:
 	dh $@ --buildsystem=python_distutils --with python2,python3
 
 override_dh_auto_install:
-	set -e ; for pyvers in $(PYTHONS); do \
-		python$$pyvers setup.py install --install-layout=deb \
-			--root $(CURDIR)/debian/python-rtslib-fb; \
-	done
-	set -e ; for pyvers in $(PYTHON3S); do \
-		python$$pyvers setup.py install --install-layout=deb \
-			--root $(CURDIR)/debian/python3-rtslib-fb; \
-	done
-	mv $(CURDIR)/debian/python-rtslib-fb/usr/bin/targetctl \
-		$(CURDIR)/debian/python-rtslib-fb/usr/bin/targetctl-python2
-	mv $(CURDIR)/debian/python3-rtslib-fb/usr/bin/targetctl \
-		$(CURDIR)/debian/python3-rtslib-fb/usr/bin/targetctl-python3
+	pkgos-dh_auto_install
 
 override_dh_python3:
 	dh_python3 --shebang=/usr/bin/python3
